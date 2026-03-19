@@ -166,10 +166,52 @@ app.get('/api/categories/:category/:subcategory', (req, res) => {
     }
 });
 
+// ============== USER MANAGEMENT ==============
+
+// Get all users
+app.get('/api/users', (req, res) => {
+    try {
+        const users = progressService.getAllUsers();
+        const userInfo = users.map(username => progressService.getUserInfo(username));
+        res.json({ success: true, data: userInfo });
+    } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get user info
+app.get('/api/users/:username', (req, res) => {
+    try {
+        const { username } = req.params;
+        const info = progressService.getUserInfo(username);
+        res.json({ success: true, data: info });
+    } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Delete user
+app.delete('/api/users/:username', (req, res) => {
+    try {
+        const { username } = req.params;
+        const success = progressService.deleteUser(username);
+        if (success) {
+            res.json({ success: true, message: `User ${username} deleted` });
+        } else {
+            res.status(404).json({ success: false, error: 'User not found' });
+        }
+    } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ============== PROGRESS ENDPOINTS (MULTI-USER) ==============
+
 // Get learning dashboard/stats
 app.get('/api/progress/dashboard', (req, res) => {
     try {
-        const stats = progressService.getDashboardStats();
+        const username = req.query.username as string || 'default-user';
+        const stats = progressService.getDashboardStats(username);
         res.json({ success: true, data: stats });
     } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });
@@ -179,8 +221,11 @@ app.get('/api/progress/dashboard', (req, res) => {
 // Mark topic as completed
 app.post('/api/progress/complete', (req, res) => {
     try {
-        const { category, subtopic, language } = req.body;
-        progressService.markAsCompleted(category, subtopic, language);
+        const { username, category, subtopic, language } = req.body;
+        if (!username) {
+            return res.status(400).json({ success: false, error: 'Username is required' });
+        }
+        progressService.markAsCompleted(username, category, subtopic, language);
         res.json({ success: true, message: 'Progress updated' });
     } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });
@@ -190,8 +235,11 @@ app.post('/api/progress/complete', (req, res) => {
 // Add to favorites
 app.post('/api/progress/favorite', (req, res) => {
     try {
-        const { category, subtopic } = req.body;
-        progressService.toggleFavorite(category, subtopic);
+        const { username, category, subtopic } = req.body;
+        if (!username) {
+            return res.status(400).json({ success: false, error: 'Username is required' });
+        }
+        progressService.toggleFavorite(username, category, subtopic);
         res.json({ success: true, message: 'Favorite updated' });
     } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });
@@ -201,7 +249,8 @@ app.post('/api/progress/favorite', (req, res) => {
 // Get personalized learning path
 app.get('/api/learning-path', (req, res) => {
     try {
-        const path = progressService.getRecommendedLearningPath();
+        const username = req.query.username as string || 'default-user';
+        const path = progressService.getRecommendedLearningPath(username);
         res.json({ success: true, data: path });
     } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });

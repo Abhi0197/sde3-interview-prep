@@ -2,10 +2,12 @@ import fs from 'fs';
 import path from 'path';
 
 interface UserProgress {
+    username: string;
     completed: Set<string>;
     favorites: Set<string>;
     streak: number;
     lastUpdated: string;
+    createdAt: string;
 }
 
 interface DashboardStats {
@@ -24,88 +26,90 @@ interface DashboardStats {
 }
 
 class ProgressService {
-    private progress: UserProgress;
-    private progressFile: string;
+    private usersDataDir: string;
 
     constructor() {
-        this.progressFile = path.join(process.cwd(), 'data/progress.json');
-        this.progress = {
-            completed: new Set(),
-            favorites: new Set(),
-            streak: 0,
-            lastUpdated: new Date().toISOString()
-        };
+        this.usersDataDir = path.join(process.cwd(), 'data/users');
     }
 
     initialize() {
         try {
             this.ensureDataDir();
-            this.loadProgress();
-            console.log('✓ Progress service initialized');
+            console.log('✓ Progress service initialized (multi-user)');
         } catch (error) {
             console.error('Error initializing progress service:', error);
         }
     }
 
     private ensureDataDir() {
-        const dataDir = path.dirname(this.progressFile);
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
+        if (!fs.existsSync(this.usersDataDir)) {
+            fs.mkdirSync(this.usersDataDir, { recursive: true });
         }
     }
 
-    private loadProgress() {
+    private getUserProgressPath(username: string): string {
+        return path.join(this.usersDataDir, `${username}/progress.json`);
+    }
+
+    private getUserDir(username: string): string {
+        return path.join(this.usersDataDir, username);
+    }
+
+    private loadProgress(username: string): UserProgress {
         try {
-            if (fs.existsSync(this.progressFile)) {
-                const data = JSON.parse(fs.readFileSync(this.progressFile, 'utf-8'));
-                this.progress.completed = new Set(data.completed || []);
-                this.progress.favorites = new Set(data.favorites || []);
-                this.progress.streak = data.streak || 0;
-                this.progress.lastUpdated = data.lastUpdated || new Date().toISOString();
+            const progressFile = this.getUserProgressPath(username);
+            if (fs.existsSync(progressFile)) {
+                const data = JSON.parse(fs.readFileSync(progressFile, 'utf-8'));
+                return {
+                    username,
+                    completed: new Set(data.completed || []),
+                    favorites: new Set(data.favorites || []),
+                    streak: data.streak || 0,
+                    lastUpdated: data.lastUpdated || new Date().toISOString(),
+                    createdAt: data.createdAt || new Date().toISOString()
+                };
             }
         } catch (error) {
-            console.error('Error loading progress:', error);
+            console.error(`Error loading progress for ${username}:`, error);
         }
+
+        return {
+            username,
+            completed: new Set(),
+            favorites: new Set(),
+            streak: 0,
+            lastUpdated: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
     }
 
-    private saveProgress() {
+    private saveProgress(username: string, progress: UserProgress) {
         try {
-            this.ensureDataDir();
+            const userDir = this.getUserDir(username);
+            if (!fs.existsSync(userDir)) {
+                fs.mkdirSync(userDir, { recursive: true });
+            }
+
+            const progressFile = this.getUserProgressPath(username);
             const data = {
-                completed: Array.from(this.progress.completed),
-                favorites: Array.from(this.progress.favorites),
-                streak: this.progress.streak,
-                lastUpdated: new Date().toISOString()
+                username,
+                completed: Array.from(progress.completed),
+                favorites: Array.from(progress.favorites),
+                streak: progress.streak,
+                lastUpdated: new Date().toISOString(),
+                createdAt: progress.createdAt
             };
-            fs.writeFileSync(this.progressFile, JSON.stringify(data, null, 2));
+            fs.writeFileSync(progressFile, JSON.stringify(data, null, 2));
         } catch (error) {
-            console.error('Error saving progress:', error);
+            console.error(`Error saving progress for ${username}:`, error);
         }
     }
 
-    markAsCompleted(category: string, subtopic: string, language?: string) {
-        const key = language ? `${category}/${subtopic}/${language}` : `${category}/${subtopic}`;
-        this.progress.completed.add(key);
-        this.updateStreak();
-        this.saveProgress();
-    }
-
-    toggleFavorite(category: string, subtopic: string) {
-        const key = `${category}/${subtopic}`;
-        if (this.progress.favorites.has(key)) {
-            this.progress.favorites.delete(key);
-        } else {
-            this.progress.favorites.add(key);
-        }
-        this.saveProgress();
-    }
-
-    private updateStreak() {
+    private updateStreak(progress: UserProgress) {
         const today = new Date().toDateString();
-        const lastUpdated = new Date(this.progress.lastUpdated).toDateString();
+        const lastUpdated = new Date(progress.lastUpdated).toDateString();
         
         if (lastUpdated === today) {
-            // Same day, no change
             return;
         }
         
@@ -113,13 +117,34 @@ class ProgressService {
         yesterday.setDate(yesterday.getDate() - 1);
         
         if (lastUpdated === yesterday.toDateString()) {
-            this.progress.streak++;
+            progress.streak++;
         } else {
-            this.progress.streak = 1;
+            progress.streak = 1;
         }
     }
 
-    getDashboardStats(): DashboardStats {
+    markAsCompleted(username: string, category: string, subtopic: string, language?: string) {
+        const progress = this.loadProgress(username);
+        const key = language ? `${category}/${subtopic}/${language}` : `${category}/${subtopic}`;
+        progress.completed.add(key);
+        this.updateStreak(progress);
+        this.saveProgress(username, progress);
+    }
+
+    toggleFavorite(username: string, category: string, subtopic: string) {
+        const progress = this.loadProgress(username);
+        const key = `${category}/${subtopic}`;
+        if (progress.favorites.has(key)) {
+            progress.favorites.delete(key);
+        } else {
+            progress.favorites.add(key);
+        }
+        this.saveProgress(username, progress);
+    }
+
+
+    getDashboardStats(username: string): DashboardStats {
+        const progress = this.loadProgress(username);
         const categoryStats: { [key: string]: { total: number; completed: number; name: string } } = {
             dsa: { total: 6, completed: 0, name: 'DSA' },
             'system-design': { total: 5, completed: 0, name: 'System Design' },
@@ -132,7 +157,7 @@ class ProgressService {
 
         let totalCompletedCount = 0;
 
-        this.progress.completed.forEach(item => {
+        progress.completed.forEach(item => {
             const parts = item.split('/');
             const category = parts[0];
             if (categoryStats[category]) {
@@ -159,12 +184,12 @@ class ProgressService {
             totalTopics,
             completedTopics,
             completionPercentage,
-            streak: this.progress.streak,
+            streak: progress.streak,
             byCategory
         };
     }
 
-    getRecommendedLearningPath() {
+    getRecommendedLearningPath(username: string) {
         const categories = [
             {
                 id: 'dsa',
@@ -230,18 +255,62 @@ class ProgressService {
         };
     }
 
-    getFavorites() {
-        return Array.from(this.progress.favorites);
+    getFavorites(username: string) {
+        const progress = this.loadProgress(username);
+        return Array.from(progress.favorites);
     }
 
-    isCompleted(category: string, subtopic: string, language?: string): boolean {
+    isCompleted(username: string, category: string, subtopic: string, language?: string): boolean {
+        const progress = this.loadProgress(username);
         const key = language ? `${category}/${subtopic}/${language}` : `${category}/${subtopic}`;
-        return this.progress.completed.has(key);
+        return progress.completed.has(key);
     }
 
-    isFavorite(category: string, subtopic: string): boolean {
+    isFavorite(username: string, category: string, subtopic: string): boolean {
+        const progress = this.loadProgress(username);
         const key = `${category}/${subtopic}`;
-        return this.progress.favorites.has(key);
+        return progress.favorites.has(key);
+    }
+
+    getAllUsers(): string[] {
+        try {
+            if (!fs.existsSync(this.usersDataDir)) {
+                return [];
+            }
+            return fs.readdirSync(this.usersDataDir).filter(file => {
+                const stat = fs.statSync(path.join(this.usersDataDir, file));
+                return stat.isDirectory();
+            });
+        } catch (error) {
+            console.error('Error getting users:', error);
+            return [];
+        }
+    }
+
+    deleteUser(username: string): boolean {
+        try {
+            const userDir = this.getUserDir(username);
+            if (fs.existsSync(userDir)) {
+                fs.rmSync(userDir, { recursive: true });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error(`Error deleting user ${username}:`, error);
+            return false;
+        }
+    }
+
+    getUserInfo(username: string) {
+        const progress = this.loadProgress(username);
+        return {
+            username,
+            createdAt: progress.createdAt,
+            lastUpdated: progress.lastUpdated,
+            streak: progress.streak,
+            totalCompleted: progress.completed.size,
+            totalFavorites: progress.favorites.size
+        };
     }
 }
 
