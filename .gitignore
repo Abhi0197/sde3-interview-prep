@@ -19,5 +19,4 @@ yarn-error.log*
 .next/
 out/
 data/progress.json
-public/
 .vercel

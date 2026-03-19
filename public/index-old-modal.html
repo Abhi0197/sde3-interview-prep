@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDE 3 Interview Prep - One Stop Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --secondary-dark: #db2777;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --bg: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text: #f1f5f9;
+            --text-muted: #cbd5e1;
+            --border: #475569;
+            --shadow: 0 10px 40px rgba(99, 102, 241, 0.1);
+            --shadow-lg: 0 20px 60px rgba(99, 102, 241, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        header .header-meta {
+            margin-top: 1rem;
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+        }
+
+        header .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 100px;
+            z-index: 99;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        nav button:hover {
+            color: var(--text);
+            border-bottom-color: var(--primary);
+        }
+
+        nav button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Dashboard Section */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+            pointer-events: none;
+        }
+
+        .stat-card:hover {
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-color: var(--primary);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card h3 {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-card .number {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .subtext {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            background: var(--bg-tertiary);
+            height: 8px;
+            border-radius: 999px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        /* Topics Grid */
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .topic-card {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, transparent 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            group: hover;
+        }
+
+        .topic-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .topic-card:hover {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-color: var(--primary);
+            transform: translateY(-12px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .topic-card:hover .topic-header {
+            transform: scale(1.05);
+        }
+
+        .topic-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            font-size: 3.5rem;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+        }
+
+        .topic-content {
+            padding: 2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topic-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topic-meta {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .topic-difficulty {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--border);
+        }
+
+        .topic-difficulty.beginner {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .topic-difficulty.intermediate {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+
+        .topic-difficulty.advanced {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .topic-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .topic-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            gap: 1rem;
+        }
+
+        .time-estimate {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .topic-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0.65rem 1.3rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            border-color: var(--primary);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .btn-icon:hover {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.15);
+        }
+
+        .btn-icon.favorited {
+            color: var(--secondary);
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .btn-icon.completed {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Search */
+        .search-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1.1rem 1.5rem 1.1rem 3.2rem;
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: var(--bg-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.2rem;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1.5px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Modal and Content Viewer */
+        #contentModal {
+            animation: fadeInModal 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeInModal {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(2px);
+            }
+        }
+
+        #contentModal > div {
+            animation: slideUpContent 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUpContent {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Content Viewer */
+        .content-viewer {
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+            line-height: 1.9;
+            font-size: 1rem;
+            animation: fadeInContent 0.6s ease;
+        }
+
+        @keyframes fadeInContent {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .content-viewer h1 {
+            color: var(--primary);
+            margin: 2rem 0 1.5rem 0;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.75rem;
+        }
+
+        .content-viewer h2 {
+            color: var(--primary);
+            margin: 2.5rem 0 1.5rem 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.75rem;
+        }
+
+        .content-viewer h3 {
+            color: var(--primary-light);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding-left: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .content-viewer h4 {
+            color: var(--info);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .content-viewer h5 {
+            color: var(--text);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .content-viewer p {
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            line-height: 1.9;
+            text-align: justify;
+        }
+
+        .content-viewer > p:first-child {
+            font-size: 1.05rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .content-viewer ul {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+            list-style: none;
+        }
+
+        .content-viewer ul li {
+            color: var(--text-muted);
+            margin-bottom: 0.85rem;
+            line-height: 1.8;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .content-viewer ul li::before {
+            content: '▪';
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .content-viewer ol {
+            margin-left: 2.5rem;
+            margin-bottom: 1.5rem;
+            list-style: decimal;
+        }
+
+        .content-viewer ol li {
+            color: var(--text-muted);
+            margin-bottom: 0.85rem;
+            line-height: 1.8;
+            padding-left: 0.5rem;
+        }
+
+        .content-viewer li p {
+            margin-bottom: 0.5rem;
+        }
+
+        .content-viewer strong {
+            color: var(--primary-light);
+            font-weight: 700;
+        }
+
+        .content-viewer em {
+            color: var(--info);
+            font-style: italic;
+        }
+
+        .content-viewer blockquote {
+            border-left: 5px solid var(--primary);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            padding: 1rem 0 1rem 1.5rem;
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .content-viewer code {
+            background: var(--bg-tertiary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            color: var(--primary-light);
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
+            word-break: break-word;
+            border: 1px solid var(--border);
+        }
+
+        .content-viewer pre {
+            background: var(--bg-tertiary);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 2rem 0;
+            font-size: 0.925rem;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-viewer pre code {
+            background: none;
+            padding: 0;
+            color: var(--primary-light);
+            border: none;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .content-viewer table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-viewer table th {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .content-viewer table td {
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .content-viewer table tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .content-viewer table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .content-viewer hr {
+            margin: 2rem 0;
+            border: none;
+            border-top: 2px solid var(--border);
+        }
+
+        .content-viewer a {
+            color: var(--info);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(14, 165, 233, 0.3);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .content-viewer a:hover {
+            color: var(--primary-light);
+            border-bottom-color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .content-viewer .highlight {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+        }
+
+        /* Scrollbar styling */
+        #contentModal div:nth-child(1) div:nth-child(2) {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--bg-tertiary);
+        }
+
+        #contentModal div:nth-child(1) div:nth-child(2)::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #contentModal div:nth-child(1) div:nth-child(2)::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        #contentModal div:nth-child(1) div:nth-child(2)::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+            border: 2px solid var(--bg-tertiary);
+        }
+
+        #contentModal div:nth-child(1) div:nth-child(2)::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        /* Smooth transitions for modal */
+        #contentModal {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Content sections with better spacing */
+        .content-viewer > *:first-child {
+            margin-top: 0;
+        }
+
+        .content-viewer > * + h1,
+        .content-viewer > * + h2,
+        .content-viewer > * + h3 {
+            margin-top: 2.5rem;
+        }
+
+        /* Better code syntax highlighting */
+        .content-viewer pre code {
+            display: block;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        /* Better link hover effect */
+        .content-viewer a {
+            position: relative;
+        }
+
+        .content-viewer a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: right;
+        }
+
+        .content-viewer a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Learning Path */
+        .learning-path {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .learning-path h3 {
+            color: var(--primary);
+            margin-bottom: 2rem;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .path-item {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .path-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(8px);
+        }
+
+        .path-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2rem;
+            left: 2rem;
+            width: 2px;
+            height: 2rem;
+            background: linear-gradient(180deg, var(--primary) 0%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .path-item:last-child::after {
+            display: none;
+        }
+
+        .path-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            width: 50px;
+            min-width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 800;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .path-details h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .path-details p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .path-duration {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            color: var(--info);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .path-details h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .path-details p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            nav {
+                padding: 0.75rem 1rem;
+            }
+
+            .topics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Code style */
+        pre {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Success message */
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--success);
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>🚀 SDE 3 Interview Prep</h1>
+        <p>Master DSA • System Design • LLD • HLD • Agentic AI • Communication Skills</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="navigation">
+        <button class="nav-btn active" data-section="dashboard">📊 Dashboard</button>
+        <button class="nav-btn" data-section="topics">📚 Topics</button>
+        <button class="nav-btn" data-section="learning-path">🎯 Learning Path</button>
+        <button class="nav-btn" data-section="favorites">⭐ Favorites</button>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Your Progress</h2>
+            <div class="dashboard" id="statsContainer">
+                <!-- Stats will be loaded here -->
+            </div>
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search topics, concepts, or keywords...">
+            </div>
+            <div id="searchResults"></div>
+        </section>
+
+        <!-- Topics Section -->
+        <section id="topics" class="section hidden">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">All Topics</h2>
+            <div class="topics-grid" id="topicsGrid">
+                <!-- Topics will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Learning Path Section -->
+        <section id="learning-path" class="section hidden">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Recommended Learning Path</h2>
+            <div class="learning-path" id="pathContainer">
+                <!-- Learning path will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Favorites Section -->
+        <section id="favorites" class="section hidden">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Your Favorites</h2>
+            <div id="favoritesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+                <!-- Favorites will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Content Viewer Modal -->
+        <div id="contentModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 1000; overflow-y: auto; padding: 1.5rem; backdrop-filter: blur(2px);">
+            <div style="background: var(--bg); border-radius: 16px; max-width: 1000px; margin: 2rem auto; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2); overflow: hidden;">
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); padding: 2rem 2.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);">
+                    <h2 id="contentTitle" style="color: white; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.3px;"></h2>
+                    <button onclick="closeContentModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 2rem; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; hover-opacity: 0.8;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)';">✕</button>
+                </div>
+                <!-- Content -->
+                <div id="contentBody" style="padding: 2.5rem 3rem; max-height: calc(100vh - 300px); overflow-y: auto;">
+                    <!-- Content will be loaded here -->
+                </div>
+                <!-- Footer -->
+                <div style="background: var(--bg-secondary); padding: 1.5rem 2.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">
+                        <span>💡 Tip: Scroll through all content and practice implementation</span>
+                    </div>
+                    <button onclick="closeContentModal()" class="btn btn-primary" style="padding: 0.7rem 1.5rem;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let allTopics = [];
+        let allStats = {};
+        let favorites = new Set();
+
+        // Initialize app
+        async function init() {
+            await loadStats();
+            await loadTopics();
+            renderDashboard();
+            setupEventListeners();
+        }
+
+        // Load stats from backend
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/progress/dashboard');
+                const result = await response.json();
+                if (result.success) {
+                    allStats = result.data;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load topics from backend
+        async function loadTopics() {
+            try {
+                const response = await fetch('/api/topics');
+                const result = await response.json();
+                if (result.success) {
+                    allTopics = result.data;
+                }
+            } catch (error) {
+                console.error('Error loading topics:', error);
+            }
+        }
+
+        // Render dashboard
+        function renderDashboard() {
+            const statsContainer = document.getElementById('statsContainer');
+            
+            // Overall stats
+            const overallHtml = `
+                <div class="stat-card">
+                    <h3>Overall Progress</h3>
+                    <div class="number">${allStats.completionPercentage}%</div>
+                    <div class="subtext">${allStats.completedTopics}/${allStats.totalTopics} topics completed</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${allStats.completionPercentage}%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>Learning Streak</h3>
+                    <div class="number">🔥 ${allStats.streak}</div>
+                    <div class="subtext">days of consistent learning</div>
+                </div>
+            `;
+
+            // Category stats
+            let categoryHtml = '';
+            Object.values(allStats.byCategory).forEach(cat => {
+                categoryHtml += `
+                    <div class="stat-card">
+                        <h3>${cat.name}</h3>
+                        <div class="number">${cat.percentage}%</div>
+                        <div class="subtext">${cat.completed}/${cat.total} completed</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${cat.percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            statsContainer.innerHTML = overallHtml + categoryHtml;
+        }
+
+        // Render topics
+        function renderTopics(topics = allTopics) {
+            const grid = document.getElementById('topicsGrid');
+            let html = '';
+
+            topics.forEach(category => {
+                category.subtopics.forEach(topic => {
+                    const icon = category.icon || '📚';
+                    const diffClass = topic.difficulty.toLowerCase();
+                    
+                    html += `
+                        <div class="topic-card" onclick="viewContent('${topic.category}', '${topic.id}')">
+                            <div class="topic-header">${icon}</div>
+                            <div class="topic-content">
+                                <h3>${topic.name}</h3>
+                                <span class="topic-difficulty ${diffClass}">${topic.difficulty}</span>
+                                <div class="topic-description">Click to learn more</div>
+                                <div class="topic-footer">
+                                    <span class="time-estimate">2-3h to master</span>
+                                    <div class="topic-actions">
+                                        <button class="btn-icon" onclick="event.stopPropagation(); toggleFavorite('${topic.category}', '${topic.id}', this)">⭐</button>
+                                        <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); markComplete('${topic.category}', '${topic.id}')">Done</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // Markdown to HTML converter
+        function parseMarkdown(markdown) {
+            let html = markdown;
+
+            // Convert escape sequences to actual newlines (handles \\n from JSON)
+            html = html.replace(/\\n/g, '\n');
+            html = html.replace(/\\t/g, '\t');
+            html = html.replace(/\\r/g, '\r');
+
+            // Escape HTML special characters first (but preserve markdown syntax)
+            html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            // Headers (must be before other replacements)
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+            html = html.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
+            html = html.replace(/^##### (.*?)$/gm, '<h5>$1</h5>');
+
+            // Code blocks (before inline code) - with language highlighting prep
+            html = html.replace(/```([a-z]*)\n([\s\S]*?)```/gm, (match, lang, code) => {
+                const langClass = lang ? ` class="language-${lang}"` : '';
+                return '<pre><code' + langClass + '>' + code.trim() + '</code></pre>';
+            });
+
+            // Inline code
+            html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+            // Bold and italic (in order of specificity)
+            html = html.replace(/\*\*\*([^\*]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            html = html.replace(/\*\*([^\*]+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*([^\*\n]+?)\*/g, '<em>$1</em>');
+            html = html.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
+            html = html.replace(/_([^_\n]+?)_/g, '<em>$1</em>');
+
+            // Blockquotes
+            html = html.replace(/^&gt; (.*?)$/gm, '<blockquote>$1</blockquote>');
+
+            // Horizontal rules
+            html = html.replace(/^\s*(\*{3,}|-{3,}|_{3,})\s*$/gm, '<hr>');
+
+            // Process unordered lists
+            let listMatch;
+            const ulPattern = /(?:^|\n)((?:\s*[-*] .+\n?)+)/gm;
+            html = html.replace(ulPattern, (match, listContent) => {
+                const items = listContent.split(/\n/).filter(line => /^\s*[-*]/.test(line));
+                let ul = '<ul>';
+                items.forEach(item => {
+                    const text = item.replace(/^\s*[-*]\s*/, '').trim();
+                    if (text) ul += '<li>' + text + '</li>';
+                });
+                ul += '</ul>';
+                return '\n' + ul + '\n';
+            });
+
+            // Process ordered lists
+            const olPattern = /(?:^|\n)((?:\s*\d+\. .+\n?)+)/gm;
+            html = html.replace(olPattern, (match, listContent) => {
+                const items = listContent.split(/\n/).filter(line => /^\s*\d+\./.test(line));
+                let ol = '<ol>';
+                items.forEach(item => {
+                    const text = item.replace(/^\s*\d+\.\s*/, '').trim();
+                    if (text) ol += '<li>' + text + '</li>';
+                });
+                ol += '</ol>';
+                return '\n' + ol + '\n';
+            });
+
+            // Tables (pipe-separated markdown tables)
+            html = html.replace(/(\|.*\|(?:\n|$))+/g, (match) => {
+                const rows = match.trim().split('\n').map(row => 
+                    row.split('|').map(cell => cell.trim()).filter(cell => cell)
+                );
+                
+                if (rows.length < 2) return match;
+                
+                let table = '<table><thead><tr>';
+                rows[0].forEach(cell => {
+                    table += '<th>' + cell + '</th>';
+                });
+                table += '</tr></thead><tbody>';
+                
+                for (let i = 2; i < rows.length; i++) {
+                    table += '<tr>';
+                    rows[i].forEach(cell => {
+                        table += '<td>' + cell + '</td>';
+                    });
+                    table += '</tr>';
+                }
+                table += '</tbody></table>';
+                
+                return '\n' + table + '\n';
+            });
+
+            // Line breaks - convert double newlines to paragraphs
+            html = html.replace(/\n\n+/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+
+            // Clean up empty tags and nested issues
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>\s*<(h[1-6])/g, '<$1');
+            html = html.replace(/<\/(h[1-6])>\s*<\/p>/g, '</$1>');
+            html = html.replace(/<p>\s*<(ul|ol|pre|blockquote|table|hr)/g, '<$1');
+            html = html.replace(/<\/(ul|ol|pre|blockquote|table|hr)>\s*<\/p>/g, '</$1>');
+            html = html.replace(/<p>\s*<table/g, '<table');
+            html = html.replace(/<\/table>\s*<\/p>/g, '</table>');
+
+            // Remove any stray paragraph tags around block elements
+            html = html.replace(/<p>(\s*<(table|pre|blockquote|ul|ol|h[1-6]|hr))/g, '$1');
+            html = html.replace(/(<\/(table|pre|blockquote|ul|ol|h[1-6]|hr)>)\s*<\/p>/g, '$1');
+
+            return html;
+        }
+
+        // View content
+        async function viewContent(category, subtopic) {
+            try {
+                const response = await fetch(`/api/content/${category}/${subtopic}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const content = result.data;
+                    document.getElementById('contentTitle').textContent = content.title;
+                    
+                    const parsedContent = parseMarkdown(content.content);
+                    
+                    document.getElementById('contentBody').innerHTML = `
+                        <div style="margin-bottom: 2rem;">
+                            <span class="topic-difficulty ${content.difficulty.toLowerCase()}">${content.difficulty}</span>
+                        </div>
+                        <div style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem;">
+                            <span>${content.description}</span>
+                        </div>
+                        <div style="margin-bottom: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+                            ⏱️ <strong>Estimated time:</strong> ${content.estimatedTime}
+                        </div>
+                        <div class="content-viewer">
+                            ${parsedContent}
+                        </div>
+                    `;
+                    document.getElementById('contentModal').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading content:', error);
+            }
+        }
+
+        // Close modal
+        function closeContentModal() {
+            const modal = document.getElementById('contentModal');
+            modal.style.animation = 'fadeOutModal 0.3s ease forwards';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.animation = '';
+            }, 300);
+        }
+
+        // Add keyframe animation for fade out
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOutModal {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Close modal on background click
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('contentModal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeContentModal();
+                    }
+                });
+            }
+        });
+
+        // Mark topic as complete
+        async function markComplete(category, subtopic) {
+            try {
+                await fetch('/api/progress/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, subtopic })
+                });
+                
+                // Show success message
+                const msg = document.createElement('div');
+                msg.className = 'success-message';
+                msg.textContent = '✓ Great! Topic marked as completed!';
+                document.querySelector('.container').prepend(msg);
+                setTimeout(() => msg.remove(), 3000);
+                
+                await loadStats();
+                renderDashboard();
+            } catch (error) {
+                console.error('Error marking complete:', error);
+            }
+        }
+
+        // Toggle favorite
+        async function toggleFavorite(category, subtopic, btn) {
+            try {
+                await fetch('/api/progress/favorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, subtopic })
+                });
+                
+                btn.classList.toggle('favorited');
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+            }
+        }
+
+        // Search implementation
+        async function performSearch(query) {
+            if (!query) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    let html = '<h3 style="margin: 1.5rem 0 1rem; color: var(--primary);">Search Results</h3>';
+                    html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">';
+                    
+                    result.data.forEach(item => {
+                        html += `
+                            <div class="topic-card" onclick="viewContent('${item.category}', '${item.subtopic}')">
+                                <div class="topic-header">🔍</div>
+                                <div class="topic-content">
+                                    <h3>${item.title}</h3>
+                                    <p style="font-size: 0.85rem; color: var(--text-muted);">${item.description}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    document.getElementById('searchResults').innerHTML = html;
+                } else {
+                    document.getElementById('searchResults').innerHTML = '<p style="color: var(--text-muted); margin-top: 1rem;">No results found</p>';
+                }
+            } catch (error) {
+                console.error('Error searching:', error);
+            }
+        }
+
+        // Render learning path
+        async function renderLearningPath() {
+            try {
+                const response = await fetch('/api/learning-path');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const path = result.data;
+                    let html = '';
+                    
+                    path.recommendedPath.forEach((item, index) => {
+                        html += `
+                            <div class="path-item">
+                                <div class="path-number">${index + 1}</div>
+                                <div class="path-details">
+                                    <h4>${item.name}</h4>
+                                    <p>${item.description}</p>
+                                    <p style="font-size: 0.8rem; color: var(--primary);">⏱️ ${item.duration}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '<div style="margin-top: 2rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px; border-left: 4px solid var(--secondary);">';
+                    html += '<h4 style="margin-bottom: 0.5rem;">💡 Pro Tips:</h4>';
+                    html += '<ul style="margin-left: 1.5rem;">';
+                    path.tips.forEach(tip => {
+                        html += `<li>${tip}</li>`;
+                    });
+                    html += '</ul>';
+                    html += `<p style="margin-top: 1rem; color: var(--text-muted);">Total Estimated Time: <strong>${path.totalEstimatedTime}</strong></p>`;
+                    html += '</div>';
+                    
+                    document.getElementById('pathContainer').innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading learning path:', error);
+            }
+        }
+
+        // Section navigation
+        function setupEventListeners() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const section = e.target.dataset.section;
+                    
+                    // Hide all sections
+                    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+                    
+                    // Update nav
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show selected section
+                    document.getElementById(section)?.classList.remove('hidden');
+                    
+                    // Load specific section data
+                    if (section === 'topics') {
+                        renderTopics();
+                    } else if (section === 'learning-path') {
+                        renderLearningPath();
+                    }
+                });
+            });
+
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                performSearch(e.target.value);
+            });
+
+            // Close modal on outside click
+            document.getElementById('contentModal').addEventListener('click', (e) => {
+                if (e.target.id === 'contentModal') {
+                    closeContentModal();
+                }
+            });
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
