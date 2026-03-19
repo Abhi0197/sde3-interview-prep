@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Initialize services
 contentService.initialize();
@@ -210,7 +210,7 @@ app.get('/api/learning-path', (req, res) => {
 
 // Serve the main HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(process.cwd(), 'public/index.html'));
 });
 
 // Start the server
