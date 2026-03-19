@@ -28,7 +28,7 @@ class ProgressService {
     private progressFile: string;
 
     constructor() {
-        this.progressFile = path.join(__dirname, '../../data/progress.json');
+        this.progressFile = path.join(process.cwd(), 'data/progress.json');
         this.progress = {
             completed: new Set(),
             favorites: new Set(),

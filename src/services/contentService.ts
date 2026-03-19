@@ -31,7 +31,7 @@ class ContentService {
     }
 
     private loadAllContent() {
-        const srcPath = path.join(__dirname, '..');
+        const srcPath = path.join(process.cwd(), 'src');
         const categories = [
             'dsa',
             'system-design',
