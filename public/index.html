@@ -12,47 +12,72 @@
         }
 
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary: #ec4899;
+            --primary: #22c55e;
+            --primary-dark: #15803d;
+            --primary-light: #86efac;
+            --secondary: #f97316;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --info: #0ea5e9;
-            --bg: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text: #f1f5f9;
-            --text-muted: #cbd5e1;
-            --border: #475569;
+            --info: #38bdf8;
+            --bg: #08111d;
+            --bg-secondary: #0f1b2d;
+            --bg-tertiary: #17263c;
+            --bg-elevated: rgba(15, 27, 45, 0.88);
+            --text: #eef4ff;
+            --text-muted: #a9bbd1;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-shadow: 0 22px 60px rgba(3, 10, 20, 0.35);
         }
 
         html, body {
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Avenir Next", "Segoe UI Variable", "Segoe UI", sans-serif;
             background: var(--bg);
             color: var(--text);
             overflow: hidden;
         }
 
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(34, 197, 94, 0.2), transparent 28%),
+                radial-gradient(circle at top right, rgba(249, 115, 22, 0.18), transparent 24%),
+                linear-gradient(180deg, #08111d 0%, #0a1320 48%, #08111d 100%);
+        }
+
         /* Top Navigation */
         .top-nav {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            padding: 1.5rem 2rem;
+            background:
+                linear-gradient(120deg, rgba(34, 197, 94, 0.18), rgba(249, 115, 22, 0.12)),
+                rgba(8, 17, 29, 0.88);
+            backdrop-filter: blur(18px);
+            padding: 1rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .logo {
-            font-size: 1.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .logo-title {
+            font-size: 1.35rem;
             font-weight: 800;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.4px;
+        }
+
+        .logo-subtitle {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
         }
 
         .nav-actions {
@@ -64,14 +89,15 @@
         /* Main Layout */
         .app-container {
             display: flex;
-            height: calc(100vh - 70px);
+            height: calc(100vh - 76px);
             overflow: hidden;
         }
 
         /* Sidebar */
         .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
+            width: 300px;
+            background: var(--bg-elevated);
+            backdrop-filter: blur(20px);
             border-right: 1px solid var(--border);
             overflow-y: auto;
             padding: 2rem 0;
@@ -106,13 +132,13 @@
 
         .sidebar-item:hover {
             color: var(--text);
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             border-left-color: var(--primary);
         }
 
         .sidebar-item.active {
             color: var(--primary);
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(34, 197, 94, 0.12);
             border-left-color: var(--primary);
             font-weight: 600;
         }
@@ -127,7 +153,8 @@
 
         /* Breadcrumb */
         .breadcrumb-bar {
-            background: var(--bg-secondary);
+            background: rgba(15, 27, 45, 0.82);
+            backdrop-filter: blur(18px);
             border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
             display: flex;
@@ -172,19 +199,112 @@
             margin-bottom: 3rem;
         }
 
+        .dashboard-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-main, .hero-panel {
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .hero-main {
+            padding: 2.5rem;
+            background:
+                radial-gradient(circle at top right, rgba(249, 115, 22, 0.25), transparent 26%),
+                linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(15, 27, 45, 0.95) 45%, rgba(15, 27, 45, 0.92));
+        }
+
+        .hero-panel {
+            padding: 1.5rem;
+            background: rgba(15, 27, 45, 0.92);
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #d7ffe3;
+            background: rgba(255, 255, 255, 0.08);
+            margin-bottom: 1rem;
+        }
+
         .dashboard-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 2.7rem;
+            margin-bottom: 0.8rem;
             font-weight: 800;
+            letter-spacing: -0.04em;
         }
 
         .dashboard-header p {
             color: var(--text-muted);
             font-size: 1.1rem;
+            max-width: 50rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .hero-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .hero-stat {
+            padding: 1rem 1.1rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-stat-label {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.45rem;
+        }
+
+        .hero-stat-value {
+            font-size: 1.45rem;
+            font-weight: 800;
+        }
+
+        .hero-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .hero-panel ul {
+            list-style: none;
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .hero-panel li {
+            color: var(--text-muted);
+            line-height: 1.55;
+            padding: 0.9rem 1rem;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         /* Stats Grid */
@@ -196,17 +316,18 @@
         }
 
         .stat-card {
-            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            background: linear-gradient(145deg, rgba(15, 27, 45, 0.96) 0%, rgba(23, 38, 60, 0.94) 100%);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 2rem;
             transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
         }
 
         .stat-card:hover {
             border-color: var(--primary);
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 24px 50px rgba(2, 8, 23, 0.34);
         }
 
         .stat-card h3 {
@@ -240,20 +361,21 @@
         }
 
         .category-card {
-            background: linear-gradient(145deg, var(--bg-secondary) 0%, transparent 100%);
+            background: linear-gradient(160deg, rgba(15, 27, 45, 0.95) 0%, rgba(23, 38, 60, 0.88) 100%);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 22px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--card-shadow);
         }
 
         .category-card:hover {
             border-color: var(--primary);
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 28px 60px rgba(2, 8, 23, 0.38);
         }
 
         .category-header {
@@ -284,7 +406,33 @@
             color: var(--text-muted);
             font-size: 0.95rem;
             flex: 1;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .category-progress {
+            margin-bottom: 1.2rem;
+        }
+
+        .category-progress-track {
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            margin-bottom: 0.6rem;
+        }
+
+        .category-progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .category-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.82rem;
         }
 
         .category-footer {
@@ -427,12 +575,13 @@
         }
 
         .content-body {
-            background: var(--bg-secondary);
+            background: rgba(15, 27, 45, 0.94);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 3rem;
             line-height: 1.8;
             font-size: 1rem;
+            box-shadow: var(--card-shadow);
         }
 
         /* Markdown Content Styling */
@@ -602,14 +751,30 @@
         }
 
         .btn-back {
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(34, 197, 94, 0.12);
             color: var(--primary);
             border: 1px solid var(--primary);
         }
 
         .btn-back:hover {
-            background: rgba(99, 102, 241, 0.25);
+            background: rgba(34, 197, 94, 0.2);
             transform: translateX(-4px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 12px 28px rgba(21, 128, 61, 0.22);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* Scrollbar */
@@ -645,19 +810,35 @@
             .content-area {
                 padding: 2rem 1rem;
             }
+
+            .dashboard-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-header,
+            .content-body {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Top Navigation -->
     <div class="top-nav">
-        <div class="logo">📚 SDE 3 Interview Prep</div>
+        <div class="logo">
+            <div class="logo-title">📚 SDE 3 Interview Prep</div>
+            <div class="logo-subtitle">Senior interview revision hub for coding, design, frameworks, and communication</div>
+        </div>
         <div class="nav-actions">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <button id="userButton" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); padding: 0.5rem 1rem; border-radius: 6px; color: white; cursor: pointer; font-size: 0.9rem;" onclick="toggleUserMenu()">
+                <button id="userButton" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 0.6rem 1rem; border-radius: 999px; color: white; cursor: pointer; font-size: 0.9rem;" onclick="toggleUserMenu()">
                     👤 <span id="currentUser">Guest</span>
                 </button>
-                <span id="completionBadge" style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.9rem;">0%</span>
+                <span id="completionBadge" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 0.55rem 1rem; border-radius: 999px; font-size: 0.9rem;">0%</span>
             </div>
             <!-- User Dropdown Menu -->
             <div id="userMenu" style="display: none; position: absolute; top: 65px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; min-width: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000;">
@@ -716,7 +897,8 @@
 
             <div class="sidebar-section">
                 <span class="sidebar-title">Core DSA</span>
-                <div class="sidebar-item" data-category="dsa/arrays" onclick="navigateToCategory('dsa/arrays')">Arrays & Sorting</div>
+                <div class="sidebar-item" data-category="dsa/arrays" onclick="navigateToCategory('dsa/arrays')">Arrays</div>
+                <div class="sidebar-item" data-category="dsa/sorting-searching" onclick="navigateToCategory('dsa/sorting-searching')">Sorting & Searching</div>
                 <div class="sidebar-item" data-category="dsa/strings" onclick="navigateToCategory('dsa/strings')">String Algorithms</div>
                 <div class="sidebar-item" data-category="dsa/trees" onclick="navigateToCategory('dsa/trees')">Trees & BST</div>
                 <div class="sidebar-item" data-category="dsa/graphs" onclick="navigateToCategory('dsa/graphs')">Graphs & DFS/BFS</div>
@@ -731,13 +913,17 @@
                 <div class="sidebar-item" data-category="system-design/scalability" onclick="navigateToCategory('system-design/scalability')">Scalability</div>
                 <div class="sidebar-item" data-category="system-design/kafka" onclick="navigateToCategory('system-design/kafka')">Kafka</div>
                 <div class="sidebar-item" data-category="system-design/kubernetes" onclick="navigateToCategory('system-design/kubernetes')">Kubernetes</div>
+                <div class="sidebar-item" data-category="system-design/case-studies" onclick="navigateToCategory('system-design/case-studies')">Case Studies</div>
             </div>
 
             <div class="sidebar-section">
                 <span class="sidebar-title">Design & Patterns</span>
                 <div class="sidebar-item" data-category="high-level-design/architecture-patterns" onclick="navigateToCategory('high-level-design/architecture-patterns')">Architecture</div>
+                <div class="sidebar-item" data-category="high-level-design/microservices" onclick="navigateToCategory('high-level-design/microservices')">Microservices</div>
+                <div class="sidebar-item" data-category="high-level-design/case-studies" onclick="navigateToCategory('high-level-design/case-studies')">HLD Case Studies</div>
                 <div class="sidebar-item" data-category="low-level-design/design-patterns" onclick="navigateToCategory('low-level-design/design-patterns')">Design Patterns</div>
                 <div class="sidebar-item" data-category="low-level-design/oops-principles" onclick="navigateToCategory('low-level-design/oops-principles')">OOP Principles</div>
+                <div class="sidebar-item" data-category="low-level-design/case-studies" onclick="navigateToCategory('low-level-design/case-studies')">LLD Case Studies</div>
             </div>
 
             <div class="sidebar-section">
@@ -756,7 +942,15 @@
             <div class="sidebar-section">
                 <span class="sidebar-title">Soft Skills</span>
                 <div class="sidebar-item" data-category="communication-skills/behavioral-questions" onclick="navigateToCategory('communication-skills/behavioral-questions')">Behavioral Q&A</div>
-                <div class="sidebar-item" data-category="agentic-ai/fundamentals" onclick="navigateToCategory('agentic-ai/fundamentals')">Agentic AI</div>
+                <div class="sidebar-item" data-category="communication-skills/mock-interviews" onclick="navigateToCategory('communication-skills/mock-interviews')">Mock Interviews</div>
+                <div class="sidebar-item" data-category="communication-skills/storytelling" onclick="navigateToCategory('communication-skills/storytelling')">Storytelling</div>
+            </div>
+
+            <div class="sidebar-section">
+                <span class="sidebar-title">Agentic AI</span>
+                <div class="sidebar-item" data-category="agentic-ai/fundamentals" onclick="navigateToCategory('agentic-ai/fundamentals')">Fundamentals</div>
+                <div class="sidebar-item" data-category="agentic-ai/frameworks" onclick="navigateToCategory('agentic-ai/frameworks')">Frameworks</div>
+                <div class="sidebar-item" data-category="agentic-ai/projects" onclick="navigateToCategory('agentic-ai/projects')">Project Ideas</div>
             </div>
         </div>
 
@@ -780,8 +974,8 @@
         let currentCategory = null;
         let currentTopic = null;
         let allStats = {};
-        let categoryTopicMap = {};
         let currentUsername = 'default-user';
+        const USERNAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
         // Initialize App
         async function init() {
@@ -796,7 +990,6 @@
             }
             
             await loadStats();
-            await loadCategoryTopics();
             navigateTo('dashboard');
         }
 
@@ -805,6 +998,10 @@
             const username = document.getElementById('usernameInput').value.trim();
             if (!username) {
                 alert('Please enter a name');
+                return;
+            }
+            if (!USERNAME_PATTERN.test(username)) {
+                alert('Use only letters, numbers, hyphens, or underscores.');
                 return;
             }
             currentUsername = username;
@@ -818,6 +1015,7 @@
         // Update User Display
         function updateUserDisplay() {
             document.getElementById('currentUser').textContent = currentUsername;
+            document.getElementById('menuCurrentUser').textContent = currentUsername;
         }
 
         // Toggle User Menu
@@ -908,27 +1106,13 @@
                     allStats = result.data;
                     document.getElementById('completionBadge').textContent = 
                         `${allStats.completionPercentage}% Complete`;
+                } else if (result.error === 'Invalid username') {
+                    localStorage.removeItem('userUsername');
+                    alert('That username is not valid. Please choose another one.');
+                    document.getElementById('usernameModal').style.display = 'flex';
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
-            }
-        }
-
-        // Load Category Topics
-        async function loadCategoryTopics() {
-            try {
-                const response = await fetch('/api/topics');
-                const result = await response.json();
-                if (result.success) {
-                    result.data.forEach(topic => {
-                        const key = `${topic.category}/${topic.subtopic}`;
-                        if (!categoryTopicMap[key]) {
-                            categoryTopicMap[key] = topic;
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading category topics:', error);
             }
         }
 
@@ -1000,21 +1184,54 @@
         // Render Dashboard
         function renderDashboard() {
             document.getElementById('contentArea').scrollTop = 0;
-            const categoryNames = {
-                'dsa': 'Data Structures & Algorithms',
-                'system-design': 'System Design',
-                'high-level-design': 'High-Level Design',
-                'low-level-design': 'Low-Level Design',
-                'languages': 'Programming Languages',
-                'communication-skills': 'Communication Skills',
-                'agentic-ai': 'Agentic AI'
-            };
+            const categoryCount = allStats.byCategory ? Object.keys(allStats.byCategory).length : 0;
+            const categoryCards = [
+                { id: 'dsa', name: 'Data Structures & Algorithms', category: 'dsa/arrays', emoji: '📊', description: 'Patterns, complexity, and implementation drills for high-signal coding rounds.' },
+                { id: 'system-design', name: 'System Design', category: 'system-design/databases', emoji: '🏗️', description: 'Scalability, data flow, distributed systems, and real-world architecture tradeoffs.' },
+                { id: 'low-level-design', name: 'Low-Level Design', category: 'low-level-design/design-patterns', emoji: '⚙️', description: 'Object modeling, APIs, patterns, and interview-friendly class design exercises.' },
+                { id: 'high-level-design', name: 'High-Level Design', category: 'high-level-design/architecture-patterns', emoji: '🏛️', description: 'Service boundaries, architecture choices, and end-to-end design communication.' },
+                { id: 'languages', name: 'Programming Languages', category: 'languages/java', emoji: '💻', description: 'Java, JavaScript, and Python refreshers for coding fluency and language tradeoffs.' },
+                { id: 'frameworks', name: 'Frameworks', category: 'frameworks/spring-boot', emoji: '🧩', description: 'Spring Boot and JPA/Hibernate revision for practical backend interviews.' },
+                { id: 'communication-skills', name: 'Communication Skills', category: 'communication-skills/behavioral-questions', emoji: '💬', description: 'Behavioral answers, storytelling, and mock-interview practice for senior roles.' },
+                { id: 'agentic-ai', name: 'Agentic AI', category: 'agentic-ai/fundamentals', emoji: '🤖', description: 'Fundamentals, frameworks, and project-level reasoning for modern AI discussions.' }
+            ];
 
             let content = `
                 <div class="dashboard-view">
                     <div class="dashboard-header">
-                        <h1>Welcome to Your Interview Prep Journey</h1>
-                        <p>Master all essential topics for SDE 3 interviews</p>
+                        <div class="dashboard-hero">
+                            <div class="hero-main">
+                                <div class="hero-eyebrow">Revision cockpit</div>
+                                <h1>Sharpen senior-level signal before the interview loop.</h1>
+                                <p>Use this as a single revision surface for coding rounds, system design, framework depth, communication polish, and modern agentic AI discussions.</p>
+                                <div class="hero-actions">
+                                    <button class="btn btn-primary" onclick="navigateToCategory('system-design/databases')">Start with System Design</button>
+                                    <button class="btn btn-secondary" onclick="navigateToCategory('communication-skills/mock-interviews')">Run a Mock Interview</button>
+                                </div>
+                                <div class="hero-stat-grid">
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-label">Coverage</div>
+                                        <div class="hero-stat-value">${allStats.totalTopics || 0} topics</div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-label">Completed</div>
+                                        <div class="hero-stat-value">${allStats.completedTopics || 0}</div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-label">Categories</div>
+                                        <div class="hero-stat-value">${categoryCount}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hero-panel">
+                                <h3>What to focus on next</h3>
+                                <ul>
+                                    <li>Start every design answer by locking scope, scale, and success criteria before drawing boxes.</li>
+                                    <li>Use mock interviews to pressure-test clarity, especially recovery after pushback or interruptions.</li>
+                                    <li>For agentic AI topics, emphasize orchestration, evaluation, and safety over prompt-only answers.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="stats-grid">
@@ -1039,30 +1256,11 @@
                     <div class="categories-grid">
             `;
 
-            // Get unique categories from sidebar
-            const categories = [
-                { name: 'Arrays & Sorting', category: 'dsa/arrays', emoji: '📊' },
-                { name: 'String Algorithms', category: 'dsa/strings', emoji: '🔤' },
-                { name: 'Trees & BST', category: 'dsa/trees', emoji: '🌳' },
-                { name: 'Graphs', category: 'dsa/graphs', emoji: '🕸️' },
-                { name: 'Dynamic Programming', category: 'dsa/dynamic-programming', emoji: '🎯' },
-                { name: 'Databases', category: 'system-design/databases', emoji: '🗄️' },
-                { name: 'Caching', category: 'system-design/caching', emoji: '⚡' },
-                { name: 'Message Queues', category: 'system-design/message-queues', emoji: '📬' },
-                { name: 'Scalability', category: 'system-design/scalability', emoji: '📈' },
-                { name: 'Architecture', category: 'high-level-design/architecture-patterns', emoji: '🏗️' },
-                { name: 'Design Patterns', category: 'low-level-design/design-patterns', emoji: '🎨' },
-                { name: 'OOP Principles', category: 'low-level-design/oops-principles', emoji: '🔷' },
-                { name: 'Java', category: 'languages/java', emoji: '☕' },
-                { name: 'JavaScript', category: 'languages/javascript', emoji: '⚙️' },
-                { name: 'Python', category: 'languages/python', emoji: '🐍' },
-                { name: 'Behavioral Q&A', category: 'communication-skills/behavioral-questions', emoji: '💬' },
-                { name: 'Agentic AI', category: 'agentic-ai/fundamentals', emoji: '🤖' }
-            ];
-
-            categories.forEach(cat => {
-                const stats = allStats.byCategory && allStats.byCategory[cat.category.split('/')[1]];
+            categoryCards.forEach(cat => {
+                const stats = allStats.byCategory && allStats.byCategory[cat.id];
                 const completion = stats ? stats.percentage : 0;
+                const completed = stats ? stats.completed : 0;
+                const total = stats ? stats.total : 0;
                 
                 content += `
                     <div class="category-card" onclick="navigateToCategory('${cat.category}')">
@@ -1070,10 +1268,19 @@
                         <div class="category-body">
                             <div class="category-title">${cat.name}</div>
                             <div class="category-description">
-                                Master essential concepts and practice problems
+                                ${cat.description}
+                            </div>
+                            <div class="category-progress">
+                                <div class="category-progress-track">
+                                    <div class="category-progress-bar" style="width: ${completion}%"></div>
+                                </div>
+                                <div class="category-progress-meta">
+                                    <span>${completed}/${total} topics</span>
+                                    <span>${completion}% complete</span>
+                                </div>
                             </div>
                             <div class="category-footer">
-                                <span>${completion}% Complete</span>
+                                <span>Open revision track</span>
                                 <span>→</span>
                             </div>
                         </div>
@@ -1239,8 +1446,8 @@
             
             // Close username modal on outside click
             if (e.target === usernameModal) {
-                usernameModal.style.display = 'none';
                 if (currentUsername !== 'default-user') {
+                    usernameModal.style.display = 'none';
                     init();
                 }
             }
