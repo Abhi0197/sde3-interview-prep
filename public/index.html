@@ -1537,6 +1537,9 @@
                 .map((block) => block.trim())
                 .filter(Boolean)
                 .map((block) => {
+                    if (/^__CODE_BLOCK_\d+__$/.test(block)) {
+                        return block;
+                    }
                     if (/^<(h[1-6]|ul|ol|pre|div|table|blockquote|hr)/.test(block)) {
                         return block;
                     }
