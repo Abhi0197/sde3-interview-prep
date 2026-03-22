@@ -1454,6 +1454,12 @@
             `;
         }
 
+        function replaceCodeBlockTokens(text, codeBlocks) {
+            return text.replace(/@@CODE_BLOCK_(\d+)@@/g, (match, index) => {
+                return codeBlocks[Number(index)] || match;
+            });
+        }
+
         function parseMarkdown(md) {
             const normalized = md
                 .replace(/\r\n/g, '\n')
@@ -1468,7 +1474,7 @@
 
             const codeBlocks = [];
             let html = escaped.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const token = `__CODE_BLOCK_${codeBlocks.length}__`;
+                const token = `@@CODE_BLOCK_${codeBlocks.length}@@`;
                 codeBlocks.push(buildCodeBlock(code.trim(), lang));
                 return token;
             });
@@ -1488,7 +1494,7 @@
                         return '';
                     }
                     const checked = match[1] === 'x' ? ' checked' : '';
-                    return `<li class="task-list-item"><input type="checkbox"${checked} disabled><span>${parseInlineMarkdown(match[2])}</span></li>`;
+                    return `<li class="task-list-item"><input type="checkbox"${checked} disabled><span>${replaceCodeBlockTokens(parseInlineMarkdown(match[2]), codeBlocks)}</span></li>`;
                 }).join('');
                 return `<ul class="task-list">${items}</ul>`;
             });
@@ -1496,7 +1502,7 @@
             html = html.replace(/(?:^(?:[-*] .*(?:\n|$))+)/gm, (block) => {
                 const items = block.trim().split('\n').map((line) => {
                     const match = line.match(/^[-*] (.*)$/);
-                    return match ? `<li>${parseInlineMarkdown(match[1])}</li>` : '';
+                    return match ? `<li>${replaceCodeBlockTokens(parseInlineMarkdown(match[1]), codeBlocks)}</li>` : '';
                 }).join('');
                 return `<ul>${items}</ul>`;
             });
@@ -1504,7 +1510,7 @@
             html = html.replace(/(?:^(?:\d+\. .*(?:\n|$))+)/gm, (block) => {
                 const items = block.trim().split('\n').map((line) => {
                     const match = line.match(/^\d+\. (.*)$/);
-                    return match ? `<li>${parseInlineMarkdown(match[1])}</li>` : '';
+                    return match ? `<li>${replaceCodeBlockTokens(parseInlineMarkdown(match[1]), codeBlocks)}</li>` : '';
                 }).join('');
                 return `<ol>${items}</ol>`;
             });
@@ -1517,14 +1523,14 @@
 
                 let table = '<table><thead><tr>';
                 rows[0].forEach((cell) => {
-                    table += `<th>${parseInlineMarkdown(cell)}</th>`;
+                    table += `<th>${replaceCodeBlockTokens(parseInlineMarkdown(cell), codeBlocks)}</th>`;
                 });
                 table += '</tr></thead><tbody>';
 
                 for (let i = 2; i < rows.length; i++) {
                     table += '<tr>';
                     rows[i].forEach((cell) => {
-                        table += `<td>${parseInlineMarkdown(cell)}</td>`;
+                        table += `<td>${replaceCodeBlockTokens(parseInlineMarkdown(cell), codeBlocks)}</td>`;
                     });
                     table += '</tr>';
                 }
@@ -1537,22 +1543,17 @@
                 .map((block) => block.trim())
                 .filter(Boolean)
                 .map((block) => {
-                    if (/^__CODE_BLOCK_\d+__$/.test(block)) {
+                    if (/^@@CODE_BLOCK_\d+@@$/.test(block)) {
                         return block;
                     }
                     if (/^<(h[1-6]|ul|ol|pre|div|table|blockquote|hr)/.test(block)) {
                         return block;
                     }
-                    return `<p>${parseInlineMarkdown(block.replace(/\n/g, '<br>'))}</p>`;
+                    return `<p>${replaceCodeBlockTokens(parseInlineMarkdown(block.replace(/\n/g, '<br>')), codeBlocks)}</p>`;
                 });
 
             html = blocks.join('\n');
-
-            codeBlocks.forEach((block, index) => {
-                html = html.replace(`__CODE_BLOCK_${index}__`, block);
-            });
-
-            return html;
+            return replaceCodeBlockTokens(html, codeBlocks);
         }
 
         // Initialize on page load
