@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node src/server.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "npm run build && jest --runInBand"
   },
   "dependencies": {
     "cors": "^2.8.5",

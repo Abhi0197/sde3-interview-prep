@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { contentService, TopicCategory } from './contentService';
 
 interface UserProgress {
     username: string;
@@ -25,11 +26,16 @@ interface DashboardStats {
     };
 }
 
-class ProgressService {
-    private usersDataDir: string;
+interface ContentCatalog {
+    getAllTopics(): TopicCategory[];
+}
 
-    constructor() {
-        this.usersDataDir = path.join(process.cwd(), 'data/users');
+export class ProgressService {
+    private usersDataDir: string;
+    private readonly usernamePattern = /^[A-Za-z0-9_-]{1,64}$/;
+
+    constructor(usersDataDir?: string, private readonly contentCatalog: ContentCatalog = contentService) {
+        this.usersDataDir = usersDataDir || path.join(process.cwd(), 'data/users');
     }
 
     initialize() {
@@ -48,20 +54,51 @@ class ProgressService {
     }
 
     private getUserProgressPath(username: string): string {
-        return path.join(this.usersDataDir, `${username}/progress.json`);
+        return path.join(this.getUserDir(username), 'progress.json');
     }
 
     private getUserDir(username: string): string {
-        return path.join(this.usersDataDir, username);
+        const safeUsername = this.validateUsername(username);
+        const userDir = path.resolve(this.usersDataDir, safeUsername);
+        const baseDir = path.resolve(this.usersDataDir);
+
+        if (userDir !== baseDir && !userDir.startsWith(`${baseDir}${path.sep}`)) {
+            throw new Error('Invalid username');
+        }
+
+        return userDir;
+    }
+
+    private validateUsername(username: string): string {
+        if (!this.usernamePattern.test(username)) {
+            throw new Error('Invalid username');
+        }
+
+        return username;
+    }
+
+    private getCategoryStats(): { [key: string]: { total: number; completed: number; name: string } } {
+        const topics = this.contentCatalog.getAllTopics();
+
+        return topics.reduce((stats, category) => {
+            stats[category.id] = {
+                total: category.subtopics.length,
+                completed: 0,
+                name: category.name
+            };
+            return stats;
+        }, {} as { [key: string]: { total: number; completed: number; name: string } });
     }
 
     private loadProgress(username: string): UserProgress {
+        const safeUsername = this.validateUsername(username);
+
         try {
-            const progressFile = this.getUserProgressPath(username);
+            const progressFile = this.getUserProgressPath(safeUsername);
             if (fs.existsSync(progressFile)) {
                 const data = JSON.parse(fs.readFileSync(progressFile, 'utf-8'));
                 return {
-                    username,
+                    username: safeUsername,
                     completed: new Set(data.completed || []),
                     favorites: new Set(data.favorites || []),
                     streak: data.streak || 0,
@@ -74,7 +111,7 @@ class ProgressService {
         }
 
         return {
-            username,
+            username: safeUsername,
             completed: new Set(),
             favorites: new Set(),
             streak: 0,
@@ -84,15 +121,17 @@ class ProgressService {
     }
 
     private saveProgress(username: string, progress: UserProgress) {
+        const safeUsername = this.validateUsername(username);
+
         try {
-            const userDir = this.getUserDir(username);
+            const userDir = this.getUserDir(safeUsername);
             if (!fs.existsSync(userDir)) {
                 fs.mkdirSync(userDir, { recursive: true });
             }
 
-            const progressFile = this.getUserProgressPath(username);
+            const progressFile = this.getUserProgressPath(safeUsername);
             const data = {
-                username,
+                username: safeUsername,
                 completed: Array.from(progress.completed),
                 favorites: Array.from(progress.favorites),
                 streak: progress.streak,
@@ -145,21 +184,27 @@ class ProgressService {
 
     getDashboardStats(username: string): DashboardStats {
         const progress = this.loadProgress(username);
-        const categoryStats: { [key: string]: { total: number; completed: number; name: string } } = {
-            dsa: { total: 6, completed: 0, name: 'DSA' },
-            'system-design': { total: 5, completed: 0, name: 'System Design' },
-            'low-level-design': { total: 3, completed: 0, name: 'LLD' },
-            'high-level-design': { total: 4, completed: 0, name: 'HLD' },
-            'agentic-ai': { total: 3, completed: 0, name: 'Agentic AI' },
-            'communication-skills': { total: 3, completed: 0, name: 'Communication Skills' },
-            languages: { total: 3, completed: 0, name: 'Languages' }
-        };
+        const categoryStats = this.getCategoryStats();
 
         let totalCompletedCount = 0;
+        const uniqueCompletedTopics = new Set<string>();
 
         progress.completed.forEach(item => {
             const parts = item.split('/');
             const category = parts[0];
+            const subtopic = parts[1];
+
+            if (!subtopic) {
+                return;
+            }
+
+            const topicKey = `${category}/${subtopic}`;
+            if (uniqueCompletedTopics.has(topicKey)) {
+                return;
+            }
+
+            uniqueCompletedTopics.add(topicKey);
+
             if (categoryStats[category]) {
                 categoryStats[category].completed++;
                 totalCompletedCount++;
@@ -190,6 +235,7 @@ class ProgressService {
     }
 
     getRecommendedLearningPath(username: string) {
+        this.validateUsername(username);
         const categories = [
             {
                 id: 'dsa',
@@ -288,8 +334,10 @@ class ProgressService {
     }
 
     deleteUser(username: string): boolean {
+        const safeUsername = this.validateUsername(username);
+
         try {
-            const userDir = this.getUserDir(username);
+            const userDir = this.getUserDir(safeUsername);
             if (fs.existsSync(userDir)) {
                 fs.rmSync(userDir, { recursive: true });
                 return true;

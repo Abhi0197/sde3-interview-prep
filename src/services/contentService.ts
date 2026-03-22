@@ -17,9 +17,24 @@ interface ContentModule {
     keyPoints?: string[];
 }
 
+export interface TopicSummary {
+    name: string;
+    id: string;
+    category: string;
+    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+    type: string;
+}
+
+export interface TopicCategory {
+    id: string;
+    name: string;
+    icon: string;
+    subtopics: TopicSummary[];
+}
+
 class ContentService {
     private contentCache: Map<string, ContentModule> = new Map();
-    private topics: any[] = [];
+    private topics: TopicCategory[] = [];
 
     initialize() {
         try {
@@ -54,7 +69,8 @@ class ContentService {
     private loadCategoryContent(category: string, categoryPath: string) {
         try {
             const subtopics = fs.readdirSync(categoryPath);
-            const categoryTopics: any = {
+            const categoryTopics: TopicCategory = {
+                id: category,
                 name: this.formatName(category),
                 icon: this.getCategoryIcon(category),
                 subtopics: []
@@ -203,7 +219,7 @@ class ContentService {
         return points.length > 0 ? points : ['Core concepts covered in this section'];
     }
 
-    getAllTopics() {
+    getAllTopics(): TopicCategory[] {
         return this.topics;
     }
 

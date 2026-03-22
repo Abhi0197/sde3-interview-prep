@@ -1,12 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import fs from 'fs';
 import { contentService } from './services/contentService';
 import { progressService } from './services/progressService';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+function handleRequestError(res: express.Response, error: unknown) {
+    if (error instanceof Error && error.message === 'Invalid username') {
+        return res.status(400).json({ success: false, error: error.message });
+    }
+
+    const message = error instanceof Error ? error.message : 'Unexpected server error';
+    return res.status(500).json({ success: false, error: message });
+}
 
 // Middleware
 app.use(cors());
@@ -29,8 +37,8 @@ app.get('/api/topics', (req, res) => {
     try {
         const topics = contentService.getAllTopics();
         res.json({ success: true, data: topics });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -43,8 +51,8 @@ app.get('/api/content/:category/:subtopic', (req, res) => {
             return res.status(404).json({ success: false, error: 'Content not found' });
         }
         res.json({ success: true, data: content });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -57,8 +65,8 @@ app.get('/api/search', (req, res) => {
         }
         const results = contentService.search(query);
         res.json({ success: true, data: results });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -67,8 +75,8 @@ app.get('/api/dsa', (req, res) => {
     try {
         const dsa = contentService.getByCategory('dsa');
         res.json({ success: true, data: dsa });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -77,8 +85,8 @@ app.get('/api/system-design', (req, res) => {
     try {
         const sd = contentService.getByCategory('system-design');
         res.json({ success: true, data: sd });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -87,8 +95,8 @@ app.get('/api/low-level-design', (req, res) => {
     try {
         const lld = contentService.getByCategory('low-level-design');
         res.json({ success: true, data: lld });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -97,8 +105,8 @@ app.get('/api/high-level-design', (req, res) => {
     try {
         const hld = contentService.getByCategory('high-level-design');
         res.json({ success: true, data: hld });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -107,8 +115,8 @@ app.get('/api/agentic-ai', (req, res) => {
     try {
         const ai = contentService.getByCategory('agentic-ai');
         res.json({ success: true, data: ai });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -117,8 +125,8 @@ app.get('/api/communication-skills', (req, res) => {
     try {
         const comm = contentService.getByCategory('communication-skills');
         res.json({ success: true, data: comm });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -136,10 +144,6 @@ app.get('/api/languages', (req, res) => {
 app.get('/api/categories/:category/:subcategory', (req, res) => {
     try {
         const { category, subcategory } = req.params;
-        const fullCategory = `${category}/${subcategory}`;
-        
-        // Get all topics and filter by the full category path
-        const allTopics = contentService.getAllTopics();
         let topics: any[] = [];
         
         // Find topics that match this category/subcategory
@@ -161,8 +165,8 @@ app.get('/api/categories/:category/:subcategory', (req, res) => {
         }
         
         res.json({ success: true, data: topics });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -174,8 +178,8 @@ app.get('/api/users', (req, res) => {
         const users = progressService.getAllUsers();
         const userInfo = users.map(username => progressService.getUserInfo(username));
         res.json({ success: true, data: userInfo });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -185,8 +189,8 @@ app.get('/api/users/:username', (req, res) => {
         const { username } = req.params;
         const info = progressService.getUserInfo(username);
         res.json({ success: true, data: info });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -200,8 +204,8 @@ app.delete('/api/users/:username', (req, res) => {
         } else {
             res.status(404).json({ success: false, error: 'User not found' });
         }
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -213,8 +217,8 @@ app.get('/api/progress/dashboard', (req, res) => {
         const username = req.query.username as string || 'default-user';
         const stats = progressService.getDashboardStats(username);
         res.json({ success: true, data: stats });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -227,8 +231,8 @@ app.post('/api/progress/complete', (req, res) => {
         }
         progressService.markAsCompleted(username, category, subtopic, language);
         res.json({ success: true, message: 'Progress updated' });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -241,8 +245,8 @@ app.post('/api/progress/favorite', (req, res) => {
         }
         progressService.toggleFavorite(username, category, subtopic);
         res.json({ success: true, message: 'Favorite updated' });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
@@ -252,8 +256,8 @@ app.get('/api/learning-path', (req, res) => {
         const username = req.query.username as string || 'default-user';
         const path = progressService.getRecommendedLearningPath(username);
         res.json({ success: true, data: path });
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
+    } catch (error) {
+        handleRequestError(res, error);
     }
 });
 
