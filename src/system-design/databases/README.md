@@ -330,7 +330,7 @@ SELECT * FROM users WHERE status = 'active';
 CREATE INDEX idx_status ON users(status);
 ```
 
-**2. Avoid SELECT ***:
+**2. Avoid `SELECT *`**:
 ```sql
 -- Slow: Returns all columns
 SELECT * FROM users;

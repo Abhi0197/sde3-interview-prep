@@ -643,6 +643,12 @@
             margin: 0.75rem 0;
         }
 
+        .content-body li > p,
+        .task-list-item p {
+            margin: 0;
+            display: inline;
+        }
+
         .content-body code {
             background: var(--bg-tertiary);
             padding: 0.15rem 0.5rem;
@@ -1038,6 +1044,7 @@
         </div>
     </div>
 
+    <script src="/vendor/marked.min.js"></script>
     <script>
         // Global State
         let currentView = 'dashboard';
@@ -1423,18 +1430,6 @@
                 });
         }
 
-        // Parse Markdown to HTML
-        function parseInlineMarkdown(text) {
-            return text
-                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;">')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-                .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')
-                .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-                .replace(/\*([^\*]+)\*/g, '<em>$1</em>')
-                .replace(/_([^_]+)_/g, '<em>$1</em>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>');
-        }
-
         function buildCodeBlock(code, lang) {
             const lineCount = code.split('\n').length;
             const languageLabel = lang ? lang.toUpperCase() : 'Code';
@@ -1454,16 +1449,6 @@
             `;
         }
 
-        function replaceCodeBlockTokens(text, codeBlocks) {
-            return text.replace(/@@CODE_BLOCK_(\d+)@@/g, (match, index) => {
-                return codeBlocks[Number(index)] || match;
-            });
-        }
-
-        function renderInline(text, codeBlocks) {
-            return replaceCodeBlockTokens(parseInlineMarkdown(text), codeBlocks);
-        }
-
         function parseMarkdown(md) {
             const normalized = md
                 .replace(/\r\n/g, '\n')
@@ -1471,95 +1456,49 @@
                 .replace(/\\t/g, '\t')
                 .replace(/\\r/g, '\r');
 
-            const escaped = normalized
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
+            const renderer = new marked.Renderer();
 
-            const codeBlocks = [];
-            let html = escaped.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const token = `@@CODE_BLOCK_${codeBlocks.length}@@`;
-                codeBlocks.push(buildCodeBlock(code.trim(), lang));
-                return token;
-            });
+            renderer.link = function ({ href, title, tokens }) {
+                const text = this.parser.parseInline(tokens);
+                const titleAttr = title ? ` title="${title}"` : '';
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`;
+            };
 
-            html = html.replace(/(@@CODE_BLOCK_\d+@@)/g, '\n\n$1\n\n');
+            renderer.image = function ({ href, text }) {
+                return `<img src="${href}" alt="${text}" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;">`;
+            };
 
-            html = html.replace(/^###### (.*?)$/gm, (match, text) => `<h6>${renderInline(text, codeBlocks)}</h6>`);
-            html = html.replace(/^##### (.*?)$/gm, (match, text) => `<h5>${renderInline(text, codeBlocks)}</h5>`);
-            html = html.replace(/^#### (.*?)$/gm, (match, text) => `<h4>${renderInline(text, codeBlocks)}</h4>`);
-            html = html.replace(/^### (.*?)$/gm, (match, text) => `<h3>${renderInline(text, codeBlocks)}</h3>`);
-            html = html.replace(/^## (.*?)$/gm, (match, text) => `<h2>${renderInline(text, codeBlocks)}</h2>`);
-            html = html.replace(/^# (.*?)$/gm, (match, text) => `<h1>${renderInline(text, codeBlocks)}</h1>`);
-            html = html.replace(/^---$/gm, '<hr>');
+            renderer.code = function ({ text, lang }) {
+                return buildCodeBlock(text.trim(), lang);
+            };
 
-            html = html.replace(/(?:^(?:- \[(?: |x)\] .*(?:\n|$))+)/gm, (block) => {
-                const items = block.trim().split('\n').map((line) => {
-                    const match = line.match(/^- \[( |x)\] (.*)$/);
-                    if (!match) {
-                        return '';
-                    }
-                    const checked = match[1] === 'x' ? ' checked' : '';
-                    return `<li class="task-list-item"><input type="checkbox"${checked} disabled><span>${renderInline(match[2], codeBlocks)}</span></li>`;
-                }).join('');
-                return `<ul class="task-list">${items}</ul>`;
-            });
-
-            html = html.replace(/(?:^(?:[-*] .*(?:\n|$))+)/gm, (block) => {
-                const items = block.trim().split('\n').map((line) => {
-                    const match = line.match(/^[-*] (.*)$/);
-                    return match ? `<li>${renderInline(match[1], codeBlocks)}</li>` : '';
-                }).join('');
-                return `<ul>${items}</ul>`;
-            });
-
-            html = html.replace(/(?:^(?:\d+\. .*(?:\n|$))+)/gm, (block) => {
-                const items = block.trim().split('\n').map((line) => {
-                    const match = line.match(/^\d+\. (.*)$/);
-                    return match ? `<li>${renderInline(match[1], codeBlocks)}</li>` : '';
-                }).join('');
-                return `<ol>${items}</ol>`;
-            });
-
-            html = html.replace(/(\|.*\|(?:\n|$))+/g, (match) => {
-                const rows = match.trim().split('\n').map((row) =>
-                    row.split('|').map((cell) => cell.trim()).filter((cell) => cell)
-                );
-                if (rows.length < 2) return match;
-
-                let table = '<table><thead><tr>';
-                rows[0].forEach((cell) => {
-                    table += `<th>${renderInline(cell, codeBlocks)}</th>`;
-                });
-                table += '</tr></thead><tbody>';
-
-                for (let i = 2; i < rows.length; i++) {
-                    table += '<tr>';
-                    rows[i].forEach((cell) => {
-                        table += `<td>${renderInline(cell, codeBlocks)}</td>`;
-                    });
-                    table += '</tr>';
+            renderer.listitem = function (item) {
+                const content = item.tokens ? this.parser.parse(item.tokens) : item.text;
+                if (item.task) {
+                    const checked = item.checked ? ' checked' : '';
+                    return `<li class="task-list-item"><input type="checkbox"${checked} disabled><span>${content}</span></li>`;
                 }
-                table += '</tbody></table>';
-                return `\n${table}\n`;
+                return `<li>${content}</li>`;
+            };
+
+            renderer.list = function (token) {
+                const body = token.items.map((item) => renderer.listitem(item)).join('');
+                if (token.items.some((item) => item.task)) {
+                    return `<ul class="task-list">${body}</ul>`;
+                }
+                const tag = token.ordered ? 'ol' : 'ul';
+                return `<${tag}>${body}</${tag}>`;
+            };
+
+            marked.setOptions({
+                gfm: true,
+                breaks: false,
+                headerIds: false,
+                mangle: false,
+                renderer
             });
 
-            const blocks = html
-                .split(/\n{2,}/)
-                .map((block) => block.trim())
-                .filter(Boolean)
-                .map((block) => {
-                    if (/^@@CODE_BLOCK_\d+@@$/.test(block)) {
-                        return block;
-                    }
-                    if (/^<(h[1-6]|ul|ol|pre|div|table|blockquote|hr)/.test(block)) {
-                        return block;
-                    }
-                    return `<p>${renderInline(block.replace(/\n/g, '<br>'), codeBlocks)}</p>`;
-                });
-
-            html = blocks.join('\n');
-            return replaceCodeBlockTokens(html, codeBlocks);
+            return marked.parse(normalized);
         }
 
         // Initialize on page load

@@ -173,20 +173,20 @@ for (Author author : authors) {
 
 ### Solutions
 
-**1. Eager Loading (Careful!)**
+**1. Eager Loading (Careful!)**:
 ```java
 @ManyToOne(fetch = FetchType.EAGER)  // Load immediately
 private Author author;
 ```
 
-**2. Fetch Join Query**
+**2. Fetch Join Query**:
 ```java
 @Query("SELECT a FROM Author a LEFT JOIN FETCH a.books")
 List<Author> findAllWithBooks();
 // Single query with JOIN: efficient!
 ```
 
-**3. Projection/DTO**
+**3. Projection/DTO**:
 ```java
 @Query("SELECT new com.example.AuthorDTO(a.id, a.name) FROM Author a")
 List<AuthorDTO> findAll();
