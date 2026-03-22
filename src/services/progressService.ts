@@ -6,9 +6,28 @@ interface UserProgress {
     username: string;
     completed: Set<string>;
     favorites: Set<string>;
+    topicTimeSpent: Map<string, number>;
+    recentActivity: RecentActivityEntry[];
     streak: number;
     lastUpdated: string;
     createdAt: string;
+}
+
+interface RecentActivityEntry {
+    topicKey: string;
+    category: string;
+    subtopic: string;
+    title: string;
+    visitedAt: string;
+    durationSeconds: number;
+}
+
+interface TopicProgressState {
+    completed: boolean;
+    favorite: boolean;
+    durationSeconds: number;
+    formattedDuration: string;
+    lastVisitedAt: string | null;
 }
 
 interface DashboardStats {
@@ -16,6 +35,10 @@ interface DashboardStats {
     completedTopics: number;
     completionPercentage: number;
     streak: number;
+    totalDurationSeconds: number;
+    totalDuration: string;
+    recentActivity: RecentActivityEntry[];
+    continueTopic: RecentActivityEntry | null;
     byCategory: {
         [key: string]: {
             name: string;
@@ -33,6 +56,7 @@ interface ContentCatalog {
 export class ProgressService {
     private usersDataDir: string;
     private readonly usernamePattern = /^[A-Za-z0-9_-]{1,64}$/;
+    private readonly recentActivityLimit = 8;
 
     constructor(usersDataDir?: string, private readonly contentCatalog: ContentCatalog = contentService) {
         this.usersDataDir = usersDataDir || path.join(process.cwd(), 'data/users');
@@ -90,6 +114,31 @@ export class ProgressService {
         }, {} as { [key: string]: { total: number; completed: number; name: string } });
     }
 
+    private getTopicKey(category: string, subtopic: string): string {
+        return `${category}/${subtopic}`;
+    }
+
+    private formatTopicTitle(category: string, subtopic: string): string {
+        const categoryData = this.contentCatalog.getAllTopics().find((topic) => topic.id === category);
+        const subtopicData = categoryData?.subtopics.find((topic) => topic.id === subtopic);
+        return subtopicData?.name || subtopic.replace(/-/g, ' ');
+    }
+
+    private formatDuration(totalSeconds: number): string {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (minutes > 0) {
+            return `${minutes}m`;
+        }
+
+        return `${Math.max(totalSeconds, 0)}s`;
+    }
+
     private loadProgress(username: string): UserProgress {
         const safeUsername = this.validateUsername(username);
 
@@ -101,6 +150,8 @@ export class ProgressService {
                     username: safeUsername,
                     completed: new Set(data.completed || []),
                     favorites: new Set(data.favorites || []),
+                    topicTimeSpent: new Map(Object.entries(data.topicTimeSpent || {})),
+                    recentActivity: data.recentActivity || [],
                     streak: data.streak || 0,
                     lastUpdated: data.lastUpdated || new Date().toISOString(),
                     createdAt: data.createdAt || new Date().toISOString()
@@ -114,6 +165,8 @@ export class ProgressService {
             username: safeUsername,
             completed: new Set(),
             favorites: new Set(),
+            topicTimeSpent: new Map(),
+            recentActivity: [],
             streak: 0,
             lastUpdated: new Date().toISOString(),
             createdAt: new Date().toISOString()
@@ -134,6 +187,8 @@ export class ProgressService {
                 username: safeUsername,
                 completed: Array.from(progress.completed),
                 favorites: Array.from(progress.favorites),
+                topicTimeSpent: Object.fromEntries(progress.topicTimeSpent),
+                recentActivity: progress.recentActivity,
                 streak: progress.streak,
                 lastUpdated: new Date().toISOString(),
                 createdAt: progress.createdAt
@@ -167,6 +222,7 @@ export class ProgressService {
         const key = language ? `${category}/${subtopic}/${language}` : `${category}/${subtopic}`;
         progress.completed.add(key);
         this.updateStreak(progress);
+        this.recordRecentActivity(progress, category, subtopic);
         this.saveProgress(username, progress);
     }
 
@@ -179,6 +235,49 @@ export class ProgressService {
             progress.favorites.add(key);
         }
         this.saveProgress(username, progress);
+    }
+
+    recordTopicVisit(username: string, category: string, subtopic: string) {
+        const progress = this.loadProgress(username);
+        this.recordRecentActivity(progress, category, subtopic);
+        this.saveProgress(username, progress);
+    }
+
+    addTimeSpent(username: string, category: string, subtopic: string, durationSeconds: number) {
+        const progress = this.loadProgress(username);
+        const topicKey = this.getTopicKey(category, subtopic);
+        const currentDuration = progress.topicTimeSpent.get(topicKey) || 0;
+        const safeDuration = Math.max(0, Math.round(durationSeconds));
+
+        progress.topicTimeSpent.set(topicKey, currentDuration + safeDuration);
+        this.recordRecentActivity(progress, category, subtopic, safeDuration);
+        this.saveProgress(username, progress);
+    }
+
+    private recordRecentActivity(progress: UserProgress, category: string, subtopic: string, durationSeconds = 0) {
+        const topicKey = this.getTopicKey(category, subtopic);
+        const title = this.formatTopicTitle(category, subtopic);
+        const existing = progress.recentActivity.find((entry) => entry.topicKey === topicKey);
+        const now = new Date().toISOString();
+
+        if (existing) {
+            existing.visitedAt = now;
+            existing.durationSeconds += Math.max(durationSeconds, 0);
+            existing.title = title;
+        } else {
+            progress.recentActivity.unshift({
+                topicKey,
+                category,
+                subtopic,
+                title,
+                visitedAt: now,
+                durationSeconds: Math.max(durationSeconds, 0)
+            });
+        }
+
+        progress.recentActivity = progress.recentActivity
+            .sort((a, b) => new Date(b.visitedAt).getTime() - new Date(a.visitedAt).getTime())
+            .slice(0, this.recentActivityLimit);
     }
 
 
@@ -214,6 +313,8 @@ export class ProgressService {
         const totalTopics = Object.values(categoryStats).reduce((sum, cat) => sum + cat.total, 0);
         const completedTopics = totalCompletedCount;
         const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+        const totalDurationSeconds = Array.from(progress.topicTimeSpent.values()).reduce((sum, duration) => sum + duration, 0);
+        const recentActivity = progress.recentActivity.slice(0, 5);
 
         const byCategory: { [key: string]: any } = {};
         Object.entries(categoryStats).forEach(([key, value]) => {
@@ -230,6 +331,10 @@ export class ProgressService {
             completedTopics,
             completionPercentage,
             streak: progress.streak,
+            totalDurationSeconds,
+            totalDuration: this.formatDuration(totalDurationSeconds),
+            recentActivity,
+            continueTopic: recentActivity[0] || null,
             byCategory
         };
     }
@@ -304,6 +409,21 @@ export class ProgressService {
     getFavorites(username: string) {
         const progress = this.loadProgress(username);
         return Array.from(progress.favorites);
+    }
+
+    getTopicState(username: string, category: string, subtopic: string): TopicProgressState {
+        const progress = this.loadProgress(username);
+        const topicKey = this.getTopicKey(category, subtopic);
+        const durationSeconds = progress.topicTimeSpent.get(topicKey) || 0;
+        const recentEntry = progress.recentActivity.find((entry) => entry.topicKey === topicKey);
+
+        return {
+            completed: this.isCompleted(username, category, subtopic),
+            favorite: this.isFavorite(username, category, subtopic),
+            durationSeconds,
+            formattedDuration: this.formatDuration(durationSeconds),
+            lastVisitedAt: recentEntry?.visitedAt || null
+        };
     }
 
     isCompleted(username: string, category: string, subtopic: string, language?: string): boolean {

@@ -222,6 +222,54 @@ app.get('/api/progress/dashboard', (req, res) => {
     }
 });
 
+// Get topic progress state
+app.get('/api/progress/topic-state', (req, res) => {
+    try {
+        const username = req.query.username as string;
+        const category = req.query.category as string;
+        const subtopic = req.query.subtopic as string;
+
+        if (!username || !category || !subtopic) {
+            return res.status(400).json({ success: false, error: 'username, category, and subtopic are required' });
+        }
+
+        const state = progressService.getTopicState(username, category, subtopic);
+        res.json({ success: true, data: state });
+    } catch (error) {
+        handleRequestError(res, error);
+    }
+});
+
+// Record topic visit
+app.post('/api/progress/visit', (req, res) => {
+    try {
+        const { username, category, subtopic } = req.body;
+        if (!username || !category || !subtopic) {
+            return res.status(400).json({ success: false, error: 'username, category, and subtopic are required' });
+        }
+
+        progressService.recordTopicVisit(username, category, subtopic);
+        res.json({ success: true, message: 'Visit recorded' });
+    } catch (error) {
+        handleRequestError(res, error);
+    }
+});
+
+// Track study time
+app.post('/api/progress/time', (req, res) => {
+    try {
+        const { username, category, subtopic, durationSeconds } = req.body;
+        if (!username || !category || !subtopic) {
+            return res.status(400).json({ success: false, error: 'username, category, and subtopic are required' });
+        }
+
+        progressService.addTimeSpent(username, category, subtopic, Number(durationSeconds) || 0);
+        res.json({ success: true, message: 'Time tracked' });
+    } catch (error) {
+        handleRequestError(res, error);
+    }
+});
+
 // Mark topic as completed
 app.post('/api/progress/complete', (req, res) => {
     try {

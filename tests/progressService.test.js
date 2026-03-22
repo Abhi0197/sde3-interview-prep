@@ -95,4 +95,61 @@ describe('ProgressService', () => {
             cleanup();
         }
     });
+
+    test('tracks study time and surfaces formatted duration in dashboard and topic state', () => {
+        const { service, cleanup } = createService([
+            {
+                id: 'dsa',
+                name: 'DSA',
+                icon: 'icon',
+                subtopics: [
+                    { id: 'arrays', name: 'Arrays', category: 'dsa', difficulty: 'Beginner', type: 'algorithm' }
+                ]
+            }
+        ]);
+
+        try {
+            service.initialize();
+            service.addTimeSpent('alice', 'dsa', 'arrays', 125);
+
+            const dashboard = service.getDashboardStats('alice');
+            const topicState = service.getTopicState('alice', 'dsa', 'arrays');
+
+            expect(dashboard.totalDurationSeconds).toBe(125);
+            expect(dashboard.totalDuration).toBe('2m');
+            expect(topicState.durationSeconds).toBe(125);
+            expect(topicState.formattedDuration).toBe('2m');
+        } finally {
+            cleanup();
+        }
+    });
+
+    test('records recent activity and continue topic from latest visit', () => {
+        const { service, cleanup } = createService([
+            {
+                id: 'system-design',
+                name: 'System Design',
+                icon: 'icon',
+                subtopics: [
+                    { id: 'databases', name: 'Databases', category: 'system-design', difficulty: 'Beginner', type: 'design' },
+                    { id: 'caching', name: 'Caching', category: 'system-design', difficulty: 'Beginner', type: 'design' }
+                ]
+            }
+        ]);
+
+        try {
+            service.initialize();
+            service.recordTopicVisit('bob', 'system-design', 'databases');
+            service.addTimeSpent('bob', 'system-design', 'databases', 30);
+            service.recordTopicVisit('bob', 'system-design', 'caching');
+
+            const dashboard = service.getDashboardStats('bob');
+
+            expect(dashboard.recentActivity.length).toBe(2);
+            expect(dashboard.continueTopic.subtopic).toBe('caching');
+            expect(dashboard.recentActivity[1].durationSeconds).toBe(30);
+        } finally {
+            cleanup();
+        }
+    });
 });

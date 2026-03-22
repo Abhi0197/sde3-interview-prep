@@ -576,6 +576,84 @@
             opacity: 0.95;
         }
 
+        .topic-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+            margin: 1.25rem 0 0;
+        }
+
+        .topic-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(8, 17, 29, 0.2);
+            color: white;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .topic-chip.is-active {
+            background: rgba(34, 197, 94, 0.16);
+            border-color: rgba(134, 239, 172, 0.4);
+        }
+
+        .secondary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .secondary-card {
+            background: linear-gradient(145deg, rgba(15, 27, 45, 0.96) 0%, rgba(23, 38, 60, 0.92) 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.4rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .secondary-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.9rem;
+            color: var(--text);
+        }
+
+        .recent-list {
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .recent-item {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .recent-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(134, 239, 172, 0.35);
+        }
+
+        .recent-item-title {
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+
+        .recent-item-meta {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
         .content-body {
             background: rgba(15, 27, 45, 0.94);
             border: 1px solid var(--border);
@@ -1055,6 +1133,9 @@
         let allStats = {};
         let currentUsername = 'default-user';
         const USERNAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+        let currentTopicState = null;
+        let activeStudyTopic = null;
+        let topicSessionStartedAt = null;
 
         // Initialize App
         async function init() {
@@ -1195,8 +1276,113 @@
             }
         }
 
+        async function loadTopicState(category, subtopic) {
+            const response = await fetch(`/api/progress/topic-state?username=${encodeURIComponent(currentUsername)}&category=${encodeURIComponent(category)}&subtopic=${encodeURIComponent(subtopic)}`);
+            const result = await response.json();
+            currentTopicState = result.success ? result.data : null;
+        }
+
+        async function recordTopicVisit(category, subtopic) {
+            await fetch('/api/progress/visit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUsername, category, subtopic })
+            });
+        }
+
+        async function flushStudyTime() {
+            if (!activeStudyTopic || !topicSessionStartedAt) {
+                return;
+            }
+
+            const elapsedSeconds = Math.round((Date.now() - topicSessionStartedAt) / 1000);
+            if (elapsedSeconds < 5) {
+                activeStudyTopic = null;
+                topicSessionStartedAt = null;
+                return;
+            }
+
+            const { category, subtopic } = activeStudyTopic;
+            await fetch('/api/progress/time', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: currentUsername,
+                    category,
+                    subtopic,
+                    durationSeconds: elapsedSeconds
+                })
+            });
+
+            activeStudyTopic = null;
+            topicSessionStartedAt = null;
+        }
+
+        function startTopicSession(category, subtopic) {
+            activeStudyTopic = { category, subtopic };
+            topicSessionStartedAt = Date.now();
+        }
+
+        async function toggleTopicCompletion() {
+            if (!currentCategory || !currentTopic) {
+                return;
+            }
+
+            const [category, subtopic] = currentCategory.split('/');
+            await flushStudyTime();
+            await fetch('/api/progress/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUsername, category, subtopic })
+            });
+
+            await loadStats();
+            await loadTopicState(category, subtopic);
+            renderTopic();
+        }
+
+        async function toggleTopicFavorite() {
+            if (!currentCategory || !currentTopic) {
+                return;
+            }
+
+            const [category, subtopic] = currentCategory.split('/');
+            await flushStudyTime();
+            await fetch('/api/progress/favorite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUsername, category, subtopic })
+            });
+
+            await loadStats();
+            await loadTopicState(category, subtopic);
+            renderTopic();
+        }
+
+        function formatRelativeTime(value) {
+            if (!value) {
+                return 'Not visited yet';
+            }
+
+            const diffMs = Date.now() - new Date(value).getTime();
+            const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
+
+            if (diffMinutes < 60) {
+                return `${diffMinutes}m ago`;
+            }
+
+            const diffHours = Math.round(diffMinutes / 60);
+            if (diffHours < 24) {
+                return `${diffHours}h ago`;
+            }
+
+            const diffDays = Math.round(diffHours / 24);
+            return `${diffDays}d ago`;
+        }
+
         // Navigate to Dashboard
-        function navigateTo(view) {
+        async function navigateTo(view) {
+            await flushStudyTime();
             currentView = view;
             currentCategory = null;
             currentTopic = null;
@@ -1207,7 +1393,8 @@
         }
 
         // Navigate to Category
-        function navigateToCategory(category) {
+        async function navigateToCategory(category) {
+            await flushStudyTime();
             currentView = 'category';
             currentCategory = category;
             currentTopic = null;
@@ -1218,7 +1405,8 @@
         }
 
         // Navigate to Topic
-        function navigateToTopic(category, subtopic) {
+        async function navigateToTopic(category, subtopic) {
+            await flushStudyTime();
             currentView = 'topic';
             currentCategory = category;
             currentTopic = subtopic;
@@ -1264,6 +1452,8 @@
         function renderDashboard() {
             document.getElementById('contentArea').scrollTop = 0;
             const categoryCount = allStats.byCategory ? Object.keys(allStats.byCategory).length : 0;
+            const recentActivity = allStats.recentActivity || [];
+            const continueTopic = allStats.continueTopic;
             const categoryCards = [
                 { id: 'dsa', name: 'Data Structures & Algorithms', category: 'dsa/arrays', emoji: '📊', description: 'Patterns, complexity, and implementation drills for high-signal coding rounds.' },
                 { id: 'system-design', name: 'System Design', category: 'system-design/databases', emoji: '🏗️', description: 'Scalability, data flow, distributed systems, and real-world architecture tradeoffs.' },
@@ -1331,6 +1521,37 @@
                         </div>
                     </div>
 
+                    <div class="secondary-grid">
+                        <div class="secondary-card">
+                            <h3>Resume Learning</h3>
+                            ${continueTopic ? `
+                                <div class="recent-item" onclick="navigateToCategory('${continueTopic.category}/${continueTopic.subtopic}')">
+                                    <div class="recent-item-title">${continueTopic.title}</div>
+                                    <div class="recent-item-meta">
+                                        <span>${continueTopic.category.replace(/-/g, ' ')}</span>
+                                        <span>${formatRelativeTime(continueTopic.visitedAt)}</span>
+                                    </div>
+                                </div>
+                            ` : '<p style="color: var(--text-muted);">Start any topic and it will appear here for one-click resume.</p>'}
+                        </div>
+                        <div class="secondary-card">
+                            <h3>Recent Activity</h3>
+                            ${recentActivity.length ? `
+                                <div class="recent-list">
+                                    ${recentActivity.map((item) => `
+                                        <div class="recent-item" onclick="navigateToCategory('${item.category}/${item.subtopic}')">
+                                            <div class="recent-item-title">${item.title}</div>
+                                            <div class="recent-item-meta">
+                                                <span>${item.durationSeconds ? Math.max(1, Math.round(item.durationSeconds / 60)) + 'm tracked' : 'Viewed'}</span>
+                                                <span>${formatRelativeTime(item.visitedAt)}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<p style="color: var(--text-muted);">Your recent topics will show up here once you start exploring.</p>'}
+                        </div>
+                    </div>
+
                     <h2 style="margin-bottom: 2rem; font-size: 1.8rem; color: var(--text);">📚 Topics by Category</h2>
                     <div class="categories-grid">
             `;
@@ -1377,10 +1598,6 @@
 
         // Render Category Content (directly show the topic)
         function renderCategoryContent() {
-            const parts = currentCategory.split('/');
-            const category = parts[0];
-            const subtopic = parts[1];
-            
             // Directly fetch the content for this category/subtopic
             renderTopic();
         }
@@ -1391,14 +1608,26 @@
             const parts = currentCategory.split('/');
             const category = parts[0];
             const subtopic = parts[1];
-            
-            fetch(`/api/content/${category}/${subtopic}`)
-                .then(r => r.json())
-                .then(result => {
+
+            Promise.all([
+                fetch(`/api/content/${category}/${subtopic}`).then((r) => r.json()),
+                recordTopicVisit(category, subtopic)
+            ])
+                .then(async ([result]) => {
                     if (result.success) {
+                        await loadStats();
+                        await loadTopicState(category, subtopic);
                         const content = result.data;
                         const difficultyClass = content.difficulty ? content.difficulty.toLowerCase() : 'intermediate';
                         const parsedContent = parseMarkdown(content.content);
+                        const topicState = currentTopicState || {
+                            completed: false,
+                            favorite: false,
+                            formattedDuration: '0s',
+                            lastVisitedAt: null
+                        };
+
+                        startTopicSession(category, subtopic);
 
                         let html = `
                             <div class="content-detail">
@@ -1413,6 +1642,16 @@
                                             <span class="difficulty-badge ${difficultyClass}">${content.difficulty}</span>
                                         </div>
                                         <div>⏱️ ${content.estimatedTime}</div>
+                                    </div>
+                                    <div class="topic-toolbar">
+                                        <button class="btn ${topicState.completed ? 'btn-primary' : 'btn-secondary'}" onclick="toggleTopicCompletion()">
+                                            ${topicState.completed ? '✓ Completed' : 'Mark Complete'}
+                                        </button>
+                                        <button class="btn ${topicState.favorite ? 'btn-primary' : 'btn-secondary'}" onclick="toggleTopicFavorite()">
+                                            ${topicState.favorite ? '★ Favorited' : '☆ Favorite'}
+                                        </button>
+                                        <div class="topic-chip is-active">Tracked ${topicState.formattedDuration}</div>
+                                        <div class="topic-chip">${formatRelativeTime(topicState.lastVisitedAt)}</div>
                                     </div>
                                 </div>
 
@@ -1505,6 +1744,30 @@
 
         // Initialize on page load
         window.addEventListener('load', init);
+        window.addEventListener('beforeunload', () => {
+            if (!activeStudyTopic || !topicSessionStartedAt) {
+                return;
+            }
+
+            const elapsedSeconds = Math.round((Date.now() - topicSessionStartedAt) / 1000);
+            if (elapsedSeconds < 5) {
+                return;
+            }
+
+            const payload = new Blob([JSON.stringify({
+                username: currentUsername,
+                category: activeStudyTopic.category,
+                subtopic: activeStudyTopic.subtopic,
+                durationSeconds: elapsedSeconds
+            })], { type: 'application/json' });
+            navigator.sendBeacon('/api/progress/time', payload);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                flushStudyTime();
+            }
+        });
 
         // Modal close handlers
         document.addEventListener('click', (e) => {
